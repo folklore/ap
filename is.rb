@@ -23,7 +23,7 @@ end
 
 #cache.flush
 
-for id in 1 .. COUNT / 10000
+for id in 1 .. COUNT
 #  if (employee = cache.get("employee_#{id}")).nil?
     employee = Employee.new
 #    cache.set("employee_#{id}", employee)
