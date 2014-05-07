@@ -88,7 +88,7 @@ def search(array, value, limit, attribute)
     # ситуация, когда могут быть дубликаты в отсортированном массиве.
 
     if limit == :min
-      if array[mid] >= value
+      if array[mid] >= value and mid != 0
         while array[mid-1] >= value
           mid -= 1
         end
@@ -98,7 +98,7 @@ def search(array, value, limit, attribute)
         end
       end
     else
-      if array[mid] <= value
+      if array[mid] <= value and mid != array.length - 1
         while array[mid+1] <= value
           mid += 1
         end
@@ -136,7 +136,7 @@ Benchmark.bm { |bench|
       threads << Thread.new {
         # Каждый потока сортирует штат
         # по подотчётному ему атрибуту
-        staff = @staff.sort_by{ |e| e.send(attribute) }
+        staff = @staff.map(&attribute).sort
 
         # Массив подпотоков
         subthreads = [ ]
@@ -145,8 +145,12 @@ Benchmark.bm { |bench|
           subthreads << Thread.new {
             # Каждый подпоток ищет границу
             # подотчётного ему предела
-            search(staff.map(&attribute), input[attribute][limit], limit, attribute)
+            search(staff, input[attribute][limit], limit, attribute)
           }
+        }
+
+        sorted = Thread.new {
+          @staff.sort_by(&attribute)
         }
 
         # Заменяем значения массива подпотоков на результаты
@@ -155,7 +159,7 @@ Benchmark.bm { |bench|
 
         # Каждый поток возвращает массив состоящий только из тех работников,
         # значение параметра которых удовлетворяют условию поиска.
-        staff[subthreads[0]..subthreads[1]]
+        sorted.value[subthreads[0]..subthreads[1]]
       }
     }
 
